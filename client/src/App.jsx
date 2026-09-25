@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import HeroSearch from './components/HeroSearch';
-import FilterBar from './components/FilterBar';
-import ResourceGrid from './components/ResourceGrid';
+import HomePage from './pages/HomePage';
+import ExplorerPage from './pages/ExplorerPage';
 import ResourceDetailModal from './components/ResourceDetailModal';
 import CrashPack from './components/CrashPack';
 import UploadModal from './components/UploadModal';
@@ -16,7 +15,10 @@ export default function App() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters State
+  // Page Routing State ('home', 'explorer', 'crashpack', 'requests', 'leaderboard', 'bookmarks')
+  const [currentPage, setCurrentPage] = useState('home');
+
+  // Filters State for Explorer
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('ALL');
   const [selectedSem, setSelectedSem] = useState('ALL');
@@ -24,11 +26,7 @@ export default function App() {
   const [selectedScheme, setSelectedScheme] = useState('ALL');
   const [selectedModule, setSelectedModule] = useState('ALL');
 
-  // Mode & Tabs State
-  const [isCrashPackActive, setIsCrashPackActive] = useState(false);
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'leaderboard', 'bookmarks'
-
-  // Modals
+  // Modals State
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
@@ -66,7 +64,7 @@ export default function App() {
     if (selectedType !== 'ALL') params.append('type', selectedType);
     if (selectedScheme !== 'ALL') params.append('scheme', selectedScheme);
     if (selectedModule !== 'ALL') params.append('module', selectedModule);
-    if (isCrashPackActive) params.append('crashPack', 'true');
+    if (currentPage === 'crashpack') params.append('crashPack', 'true');
 
     fetch(`/api/resources?${params.toString()}`)
       .then((res) => res.json())
@@ -82,7 +80,14 @@ export default function App() {
 
   useEffect(() => {
     fetchResources();
-  }, [searchQuery, selectedDept, selectedSem, selectedType, selectedScheme, selectedModule, isCrashPackActive]);
+  }, [searchQuery, selectedDept, selectedSem, selectedType, selectedScheme, selectedModule, currentPage]);
+
+  // Navigation Handler
+  const handleNavigate = (page, filterObj = {}) => {
+    setCurrentPage(page);
+    if (filterObj.dept) setSelectedDept(filterObj.dept);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Upvote Handler
   const handleUpvote = async (id) => {
@@ -115,50 +120,104 @@ export default function App() {
     setSelectedType('ALL');
     setSelectedScheme('ALL');
     setSelectedModule('ALL');
-    setIsCrashPackActive(false);
   };
 
-  // Filter for Bookmarks view
-  const displayedResources = activeTab === 'bookmarks'
+  // Filtered resources for Bookmarks tab
+  const displayedResources = currentPage === 'bookmarks'
     ? resources.filter((r) => bookmarks.includes(r.id))
     : resources;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-cyan-400 selection:text-slate-950 font-['Plus_Jakarta_Sans'] transition-colors">
       
       {/* Top Navigation */}
       <Navbar
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenRequest={() => setIsRequestOpen(true)}
-        onToggleCrashPack={() => {
-          setIsCrashPackActive(!isCrashPackActive);
-          setActiveTab('all');
-        }}
-        isCrashPackActive={isCrashPackActive}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         bookmarkCount={bookmarks.length}
       />
 
       {/* Main Content Area */}
       <main className="flex-grow">
-        {activeTab === 'leaderboard' ? (
-          <Leaderboard />
-        ) : (
-          <>
-            {/* Hero Search Section */}
-            <HeroSearch
+        {currentPage === 'home' && (
+          <HomePage
+            resources={resources}
+            departments={departments}
+            onNavigate={handleNavigate}
+            onUpvote={handleUpvote}
+            onBookmark={handleBookmarkToggle}
+            bookmarks={bookmarks}
+            onSelectResource={setSelectedResource}
+          />
+        )}
+
+        {currentPage === 'explorer' && (
+          <ExplorerPage
+            resources={displayedResources}
+            departments={departments}
+            loading={loading}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedDept={selectedDept}
+            setSelectedDept={setSelectedDept}
+            selectedSem={selectedSem}
+            setSelectedSem={setSelectedSem}
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
+            selectedScheme={selectedScheme}
+            setSelectedScheme={setSelectedScheme}
+            selectedModule={selectedModule}
+            setSelectedModule={setSelectedModule}
+            resetFilters={resetFilters}
+            onUpvote={handleUpvote}
+            onBookmark={handleBookmarkToggle}
+            bookmarks={bookmarks}
+            onSelectResource={setSelectedResource}
+            onOpenUpload={() => setIsUploadOpen(true)}
+          />
+        )}
+
+        {currentPage === 'crashpack' && (
+          <div className="py-8">
+            <CrashPack
+              resources={resources}
+              onUpvote={handleUpvote}
+              onBookmark={handleBookmarkToggle}
+              bookmarks={bookmarks}
+              onSelectResource={setSelectedResource}
+            />
+          </div>
+        )}
+
+        {currentPage === 'leaderboard' && (
+          <div className="py-8">
+            <Leaderboard />
+          </div>
+        )}
+
+        {currentPage === 'requests' && (
+          <div className="max-w-4xl mx-auto py-12 px-4">
+            <RequestModal
+              isOpen={true}
+              onClose={() => setCurrentPage('home')}
+              departments={departments}
+            />
+          </div>
+        )}
+
+        {currentPage === 'bookmarks' && (
+          <div className="max-w-7xl mx-auto py-12 px-4 space-y-6">
+            <h2 className="text-3xl font-black text-white font-['Outfit']">
+              Your Bookmarked Notes & Papers ({displayedResources.length})
+            </h2>
+            <ExplorerPage
+              resources={displayedResources}
+              departments={departments}
+              loading={loading}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              selectedDept={selectedDept}
-              setSelectedDept={setSelectedDept}
-              onToggleCrashPack={() => setIsCrashPackActive(!isCrashPackActive)}
-              isCrashPackActive={isCrashPackActive}
-            />
-
-            {/* Filter Controls Bar */}
-            <FilterBar
-              departments={departments}
               selectedDept={selectedDept}
               setSelectedDept={setSelectedDept}
               selectedSem={selectedSem}
@@ -170,31 +229,13 @@ export default function App() {
               selectedModule={selectedModule}
               setSelectedModule={setSelectedModule}
               resetFilters={resetFilters}
-              totalResults={displayedResources.length}
-            />
-
-            {/* Crash Pack Mode Drawer */}
-            {isCrashPackActive && (
-              <CrashPack
-                resources={resources}
-                onUpvote={handleUpvote}
-                onBookmark={handleBookmarkToggle}
-                bookmarks={bookmarks}
-                onSelectResource={setSelectedResource}
-              />
-            )}
-
-            {/* Resource Cards Grid */}
-            <ResourceGrid
-              resources={displayedResources}
-              loading={loading}
               onUpvote={handleUpvote}
               onBookmark={handleBookmarkToggle}
               bookmarks={bookmarks}
               onSelectResource={setSelectedResource}
               onOpenUpload={() => setIsUploadOpen(true)}
             />
-          </>
+          </div>
         )}
       </main>
 
@@ -211,12 +252,6 @@ export default function App() {
           setResources([newRes, ...resources]);
           fetchResources();
         }}
-      />
-
-      <RequestModal
-        isOpen={isRequestOpen}
-        onClose={() => setIsRequestOpen(false)}
-        departments={departments}
       />
 
       <ResourceDetailModal
