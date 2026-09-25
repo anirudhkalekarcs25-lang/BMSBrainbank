@@ -1,0 +1,12 @@
+{
+  "name": "bmsce-resource-hub",
+  "version": "1.0.0",
+  "description": "Merged Full-Stack Academic Resource Hub for B.M.S. College of Engineering (BMSCE)",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "cd client && npm run build",
+    "seed": "cd server && npm run seed",
+    "start": "cd client && npm run build && cd ../server && node index.js"
+  }
+}
