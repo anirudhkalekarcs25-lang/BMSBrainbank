@@ -67,16 +67,5 @@ node server/import_notego_dataset.js
 
 ---
 
-## 🏆 Hackathon Judging Criteria Breakdown (100 Marks)
-
-1. **Problem Understanding & Solution (20 Marks)**: Eliminates resource fragmentation across WhatsApp/Drive groups for BMSCE students.
-2. **Use of AI / Antigravity (20 Marks)**: Built end-to-end using Antigravity AI pair programming agent for full-stack code generation, database schema design, and automated data ingestion scripts.
-3. **Functionality (25 Marks)**: Search, multi-faceted filtering, Crash Pack mode, upvoting, request desk, leaderboard, and PDF/Drive link viewing.
-4. **UI/UX & Design (15 Marks)**: Color-matched BMS Royal Blue (`#0B4398`), Electric Cyan Glow (`#00D2FE`), glassmorphism cards, and responsive navigation.
-5. **Impact / SDG Connection (10 Marks)**: SDG 4 (Quality Education) & SDG 10 (Reduced Inequalities) by democratizing study material access.
-6. **Creativity & Presentation (10 Marks)**: Unique Pre-Exam Crash Pack, gamified leaderboard, and single-command deployment package.
-
----
-
 ## 📄 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
